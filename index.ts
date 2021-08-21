@@ -10,14 +10,10 @@ require('dotenv').config();
 clear();
 
 console.log(
-    chalk.yellow(
-        figlet.textSync('Calendar-Stats', { horizontalLayout: 'full' })
+    chalk.red(
+        figlet.textSync('Calendar - Stats')
     )
 );
-
-
-
-
 
 const run = async () => {
     const calData = await getData();
@@ -26,25 +22,17 @@ const run = async () => {
 };
 
 const initialOutput = (data: any) => {
-
     chalk.blue(console.log(chalk.green("today")));
     dayOutput(data[0]);
     console.log(chalk.green("yesterday"));
     dayOutput(data[1]);
-
-
     return;
 };
 
 const dayOutput = (data: any) => {
     console.log(chalk.yellow(`  ${data.total.hours}h ${data.total.minutes}min`));
     console.log(chalk.yellow(`  Total events ${data.eventCount}`));
-    data.eventList.forEach((item: { summary: any; duration: { hours: any; minutes: any; }; }) => {
-        console.log(chalk.grey(`    ${item.summary} ${item.duration.hours}h ${item.duration.minutes}min`));
-    });
-
 };
-
 run();
 
 

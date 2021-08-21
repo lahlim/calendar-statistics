@@ -1,18 +1,22 @@
 import { Calendar, CalendarEventSummary } from "../types/calendar";
+import { datesAreOnSameDay, time_convert } from "../utils/time";
 
 export const initialStats = (data: Calendar[]) => {
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
-    const todaysEvents: Calendar[] = [];
-    const yesterdaysEvents: Calendar[] = [];
-    data.forEach(event => {
-        if (datesAreOnSameDay(today, event.start)) yesterdaysEvents.push(event);
-        if (datesAreOnSameDay(yesterday, event.start)) yesterdaysEvents.push(event);
-    });
-    const todayStats = getDayStatistics(todaysEvents);
-    const yesterdayStats = getDayStatistics(yesterdaysEvents);
+    const todayStats = getDayStatistics(getEventsByDate(today, data));
+    const yesterdayStats = getDayStatistics(getEventsByDate(yesterday, data));
     return [todayStats, yesterdayStats];
+};
+
+
+const getEventsByDate = (date: Date, data: Calendar[]) => {
+    const daysEvents: Calendar[] = [];
+    data.forEach(event => {
+        if (datesAreOnSameDay(date, event.start)) daysEvents.push(event);
+    });
+    return daysEvents;
 };
 
 const getDayStatistics = (events: Calendar[]) => {
@@ -29,13 +33,3 @@ const getDayStatistics = (events: Calendar[]) => {
     return { total: time_convert(total), eventCount: events.length, eventList };
 };
 
-const time_convert = (min: number) => {
-    var hours = Math.floor(min / 60);
-    var minutes = min % 60;
-    return { hours, minutes };
-};
-
-const datesAreOnSameDay = (first: Date, second: Date) =>
-    first.getFullYear() === second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate();
