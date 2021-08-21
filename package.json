@@ -12,6 +12,8 @@
   "author": "Lassi Mustonen",
   "license": "ISC",
   "devDependencies": {
+    "@types/clear": "^0.1.2",
+    "@types/figlet": "^1.5.4",
     "@types/node": "^16.6.2",
     "@typescript-eslint/eslint-plugin": "^4.29.2",
     "@typescript-eslint/parser": "^4.29.2",
@@ -22,8 +24,13 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "chalk": "^4.1.2",
+    "clear": "^0.1.0",
     "dotenv": "^10.0.0",
+    "figlet": "^1.5.2",
     "ical2json": "^3.0.0",
+    "inquirer": "^8.1.2",
+    "minimist": "^1.2.5",
     "node-ical": "^0.13.0"
   }
 }

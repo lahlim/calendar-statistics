@@ -2,6 +2,7 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "eslint.format.enable": true,
+    "typescript.format.semicolons": "insert",
     "[typescript]": {
         "editor.defaultFormatter": "vscode.typescript-language-features"
     }
