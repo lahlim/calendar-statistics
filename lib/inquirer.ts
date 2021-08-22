@@ -4,15 +4,15 @@ module.exports = {
     askGithubCredentials: () => {
         const questions = [
             {
-                name: 'datey',
-                type: 'date',
-                message: 'Enter date you want to query\n dd/mm/yy: anyday\n t: today\n y: yesterday\n',
+                name: 'query',
+                type: 'string',
+                message: 'Search for events: ',
                 validate: function (value: string) {
                     if (value.length) {
                         //todo: proper validation
                         return true;
                     } else {
-                        return 'Please enter a date';
+                        return 'Please enter a query';
                     }
                 }
             },
