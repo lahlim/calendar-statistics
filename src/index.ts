@@ -23,27 +23,19 @@ const run = async () => {
         searchPath(options.search);
     }
     if (options.date) {
-        var dateParts = options.date.split(".");
-        console.log(new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]));
+        datePath(options.date);
     }
     if (!process.argv.slice(2).length) {
         program.outputHelp();
     }
-    /*
-    while (true) {
-        const { select } = await inquirer.askOptions();
-        switch (select) {
-            case "search":
-                searchPath();
-                break;
-            case "date":
-                console.log("date case");
-                break;
-            default:
-            // code block
-        }
-    }
-    */
+};
+
+const datePath = async (date: string) => {
+    var dateParts: any[] = date.split(".");
+    const dateFormatted = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
+    const resp = await getEvents(dateFormatted);
+    const summary = await formatSearchResults(resp);
+    logSearchResults(summary);
 };
 
 
