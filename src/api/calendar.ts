@@ -1,6 +1,6 @@
 const { google } = require('googleapis');
 require('dotenv').config();
-import { DateTime } from "luxon";
+import { DateTime, DurationObject } from "luxon";
 
 // Provide the required configuration
 const CREDENTIALS = JSON.parse(process.env.CREDENTIALS!);
@@ -35,22 +35,24 @@ export const searchEvents = async (query: string) => {
 
 
 // Get all the events between two dates
-export const getEvents = async (date: Date) => {
-    console.log(date);
-
-
-    console.log(DateTime.fromISO(date.toISOString()).endOf("day").toISO());
-
+export const getEvents = async (date?: Date, range?: any) => {
+    if (!date) date = new Date();
+    if (!range) range = "day";
     try {
         let response = await calendar.events.list({
             auth,
             calendarId: calendarId,
-            timeMin: DateTime.fromISO(date.toISOString()).toISO(),
-            timeMax: DateTime.fromISO(date.toISOString()).endOf("day").toISO(),
+            timeMin: DateTime.fromISO(date.toISOString()).startOf(range).toISO(),
+            timeMax: DateTime.fromISO(date.toISOString()).endOf(range).toISO(),
         });
-
         let items = response['data']['items'];
-        return items;
+        return {
+            range: {
+                start: DateTime.fromISO(date.toISOString()).startOf(range),
+                end: DateTime.fromISO(date.toISOString()).endOf(range),
+            },
+            items
+        };
     } catch (error) {
         console.log(`Error at getEvents --> ${error}`);
         return 0;

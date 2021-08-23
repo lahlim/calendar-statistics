@@ -3,11 +3,12 @@ import clear from "clear";
 import chalk from "chalk";
 import figlet from "figlet";
 const inquirer = require('./services/inquirer');
-import { getEventDuration, time_convert } from "./utils/time";
+import { getEventDuration, timeConvert, fromatDateInput } from "./utils/time";
 import { getEvents, searchEvents } from "./api/calendar";
 require('dotenv').config();
 import { Command } from 'commander';
 const program = new Command();
+import { DateTime } from "luxon";
 
 const run = async () => {
     clear();
@@ -16,6 +17,7 @@ const run = async () => {
         .description("Search from calendar events")
         .option('-s, --search <item>', 'Search with text from events')
         .option('-d, --date <item>', 'Search by date. Format dd.mm.yyyy')
+        .option('-w, --week <item>', 'Get weeks summary. Use 0 for ongoing week. -1 for previous and 1 for next.\nSearching one day (dd.mm.yyyy) from week gives that weeks results')
         .parse(process.argv);
     const options = program.opts();
     console.log(options);
@@ -25,10 +27,28 @@ const run = async () => {
     if (options.date) {
         datePath(options.date);
     }
+    if (options.week) {
+        weekPath(options.week);
+    }
     if (!process.argv.slice(2).length) {
-        program.outputHelp();
+        weekPath();
     }
 };
+
+
+const weekPath = async (timing?: any) => {
+    let searchDate = undefined;
+
+    if (isNaN(timing)) searchDate = fromatDateInput(timing);
+    if (!isNaN(timing)) searchDate = DateTime.now().plus({ weeks: timing }).toJSDate();
+
+    console.log(searchDate);
+
+    const resp = await getEvents(searchDate, "week");
+    const summary = await formatSearchResults(resp);
+    logSearchResults(summary);
+};
+
 
 const datePath = async (date: string) => {
     var dateParts: any[] = date.split(".");
@@ -46,8 +66,17 @@ const searchPath = async (query: string) => {
 };
 
 const logSearchResults = (searchResult: any) => {
-    console.log(chalk.bold(`Found ${searchResult.eventArray.length} events with total duration of ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min`));
-    searchResult.eventArray.forEach((event: { summary: any; duration: any; date: Date; }) => {
+    const start = searchResult.range.start.toFormat('dd.LL.yyyy');
+    const end = searchResult.range.end.toFormat('dd.LL.yyyy');
+    const events = searchResult.eventArray.length;
+    console.log(chalk.bold(`\nFound ${events} events with between ${start} - ${end} \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
+
+
+    searchResult.eventArray.forEach((event: {
+        summary: string; duration: {
+            hours: number, minutes: number;
+        }; date: Date;
+    }) => {
         console.log(event.summary, event.duration, event.date);
     });
 };
@@ -56,10 +85,10 @@ const formatSearchResults = async (data: any) => {
     if (!data) return;
     const eventArray: any = [];
     let total = 0;
-    data.forEach((event: { start: { dateTime: string; }; end: { dateTime: string; }; summary: string; }) => {
+    data.items.forEach((event: { start: { dateTime: string; }; end: { dateTime: string; }; summary: string; }) => {
         total = total + getEventDuration(event.start.dateTime, event.end.dateTime);
         const item = {
-            duration: time_convert(getEventDuration(event.start.dateTime, event.end.dateTime)),
+            duration: timeConvert(getEventDuration(event.start.dateTime, event.end.dateTime)),
             summary: event.summary,
             date: new Date(event.start.dateTime).toLocaleDateString(),
         };
@@ -67,7 +96,8 @@ const formatSearchResults = async (data: any) => {
     });
     const resp = {
         eventArray,
-        total: time_convert(total),
+        total: timeConvert(total),
+        range: data.range
     };
     return resp;
 };

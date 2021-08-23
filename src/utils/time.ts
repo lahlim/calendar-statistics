@@ -1,7 +1,12 @@
-export const time_convert = (min: number) => {
+export const timeConvert = (min: number) => {
     var hours = Math.floor(min / 60);
     var minutes = min % 60;
     return { hours, minutes };
+};
+
+export const fromatDateInput = (date: string) => {
+    const dateParts: any[] = date.split(".");
+    return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
 };
 
 export const datesAreOnSameDay = (first: Date, second: Date) =>
