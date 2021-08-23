@@ -15,9 +15,9 @@ const run = async () => {
     console.log(chalk.red(figlet.textSync('Calendar - Stats')));
     program.version('0.0.1')
         .description("Search from calendar events")
-        .option('-s, --search <item>', 'Search with text from events')
-        .option('-d, --date <item>', 'Search by date. Format dd.mm.yyyy')
-        .option('-w, --week <item>', 'Get weeks summary. Use 0 for ongoing week. -1 for previous and 1 for next.\nSearching one day (dd.mm.yyyy) from week gives that weeks results')
+        .option('-s, --search <text>', 'Search with text from events')
+        .option('-d, --date <date>', 'Search by date. Format dd.mm.yyyy')
+        .option('-w, --week <number or date>', 'Get weeks summary. Use 0 for ongoing week. -1 for previous and 1 for next.\nSearching one day (dd.mm.yyyy) from week gives that weeks results')
         .parse(process.argv);
     const options = program.opts();
     console.log(options);
@@ -90,7 +90,7 @@ const formatSearchResults = async (data: any) => {
         const item = {
             duration: timeConvert(getEventDuration(event.start.dateTime, event.end.dateTime)),
             summary: event.summary,
-            date: new Date(event.start.dateTime).toLocaleDateString(),
+            date: DateTime.fromISO(event.start.dateTime).toFormat('dd.LL'),
         };
         eventArray.push(item);
     });
