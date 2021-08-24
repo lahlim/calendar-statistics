@@ -46,7 +46,7 @@ const weekPath = async (timing?: any) => {
 
     const resp = await getEvents(searchDate, "week");
     const summary = await formatSearchResults(resp);
-    logSearchResults(summary);
+    logResults(summary);
 };
 
 
@@ -55,7 +55,7 @@ const datePath = async (date: string) => {
     const dateFormatted = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
     const resp = await getEvents(dateFormatted);
     const summary = await formatSearchResults(resp);
-    logSearchResults(summary);
+    logResults(summary);
 };
 
 
@@ -66,6 +66,16 @@ const searchPath = async (query: string) => {
 };
 
 const logSearchResults = (searchResult: any) => {
+    const events = searchResult.eventArray.length;
+    console.log(chalk.bold(`\nFound ${events} events with between  \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
+
+
+    searchResult.eventArray.forEach((event: any) => {
+        console.log("Lassi Mustonen", event.summary, event.start, event.end, event.date);
+    });
+};
+
+const logResults = (searchResult: any) => {
     const start = searchResult.range.start.toFormat('dd.LL.yyyy');
     const end = searchResult.range.end.toFormat('dd.LL.yyyy');
     const events = searchResult.eventArray.length;
@@ -85,12 +95,14 @@ const formatSearchResults = async (data: any) => {
     if (!data) return;
     const eventArray: any = [];
     let total = 0;
-    data.items.forEach((event: { start: { dateTime: string; }; end: { dateTime: string; }; summary: string; }) => {
+    data.items.forEach((event: { start: any; end: any, summary: string; }) => {
         total = total + getEventDuration(event.start.dateTime, event.end.dateTime);
         const item = {
             duration: timeConvert(getEventDuration(event.start.dateTime, event.end.dateTime)),
             summary: event.summary,
-            date: DateTime.fromISO(event.start.dateTime).toFormat('dd.LL'),
+            date: DateTime.fromISO(event.start.dateTime).toFormat('dd.LL.yyyy'),
+            start: DateTime.fromISO(event.start.dateTime).toFormat("HH:mm"),
+            end: DateTime.fromISO(event.end.dateTime).toFormat("HH:mm"),
         };
         eventArray.push(item);
     });
@@ -99,6 +111,7 @@ const formatSearchResults = async (data: any) => {
         total: timeConvert(total),
         range: data.range
     };
+
     return resp;
 };
 

@@ -26,7 +26,10 @@ export const searchEvents = async (query: string) => {
             q: query,
         });
         let items = response['data']['items'];
-        return items;
+        return {
+            range: {},
+            items
+        };;
     } catch (error) {
         console.log(`Error at getEvents --> ${error}`);
         return 0;
