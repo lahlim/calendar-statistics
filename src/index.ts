@@ -5,6 +5,7 @@ import figlet from "figlet";
 const inquirer = require('./services/inquirer');
 import { getEventDuration, timeConvert, fromatDateInput } from "./utils/time";
 import { getEvents, searchEvents } from "./api/calendar";
+import { addRows } from "./services/excel";
 require('dotenv').config();
 import { Command } from 'commander';
 const program = new Command();
@@ -55,6 +56,8 @@ const datePath = async (date: string) => {
     const dateFormatted = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
     const resp = await getEvents(dateFormatted);
     const summary = await formatSearchResults(resp);
+    addRows(summary?.eventArray);
+    // console.log(summary);
     logResults(summary);
 };
 
@@ -95,11 +98,12 @@ const formatSearchResults = async (data: any) => {
     if (!data) return;
     const eventArray: any = [];
     let total = 0;
-    data.items.forEach((event: { start: any; end: any, summary: string; }) => {
+    data.items.forEach((event: { start: any; end: any, summary: string; description: string; }) => {
         total = total + getEventDuration(event.start.dateTime, event.end.dateTime);
         const item = {
             duration: timeConvert(getEventDuration(event.start.dateTime, event.end.dateTime)),
             summary: event.summary,
+            comment: event.description,
             date: DateTime.fromISO(event.start.dateTime).toFormat('dd.LL.yyyy'),
             start: DateTime.fromISO(event.start.dateTime).toFormat("HH:mm"),
             end: DateTime.fromISO(event.end.dateTime).toFormat("HH:mm"),
