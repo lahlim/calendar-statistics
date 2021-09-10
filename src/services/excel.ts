@@ -1,5 +1,4 @@
 import ExcelJS from 'exceljs';
-import { mirror_v1 } from 'googleapis';
 
 
 const workbook = new ExcelJS.Workbook();
@@ -30,23 +29,37 @@ interface FormattedEvent {
 
 export const addRows = (events: FormattedEvent[]) => {
 
-    events.forEach(event => {
-        worksheet.addRow({
-            workItem: event.summary,
-            date: event.date,
-            hours: durationToMinutes(event.duration),
-            comment: event.comment,
-            start: event.start,
-            end: event.end,
-            person: "Lassi Mustonen"
+    let sorted: FormattedEvent[] = events.sort((a: FormattedEvent, b: FormattedEvent) => (a.start > b.start) ? 1 : ((b.start > a.start) ? -1 : 0));
+    sorted = events.sort((a: FormattedEvent, b: FormattedEvent) => (a.date < b.date) ? 1 : ((b.date < a.date) ? -1 : 0));
+
+    try {
+        sorted.forEach(event => {
+            worksheet.addRow({
+                workItem: parseWorkItemNumber(event.summary),
+                date: event.date,
+                hours: durationToHours(event.duration),
+                comment: event.comment,
+                start: event.start,
+                end: event.end,
+                person: "Lassi Mustonen"
+            });
         });
-    });
-    write();
+        write();
+    } catch (error) {
+        console.log(error);
+    }
+
 
 };
 
-const durationToMinutes = (duration: { hours: number, minutes: number; }) => {
-    return (duration.hours * 60 + duration.minutes);
+const parseWorkItemNumber = (summary: string) => {
+    if (summary.toLowerCase() === "lounas") return summary.toLowerCase();
+    const items = summary.split("-");
+    return items[1];
+};
+
+const durationToHours = (duration: { hours: number, minutes: number; }) => {
+    return duration.hours + duration.minutes / 60;
 };
 
 
