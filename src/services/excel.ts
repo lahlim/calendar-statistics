@@ -62,15 +62,9 @@ const durationToHours = (duration: { hours: number, minutes: number; }) => {
     return duration.hours + duration.minutes / 60;
 };
 
-
-
-
-
-
 const write = async () => {
-
-    worksheet.eachRow(function (row, rowNumber) {
-        console.log('Row ' + rowNumber + ' = ' + JSON.stringify(row.values));
-    });
+    // worksheet.eachRow(function (row, rowNumber) {
+    //     console.log('Row ' + rowNumber + ' = ' + JSON.stringify(row.values));
+    // });
     await workbook.xlsx.writeFile("testfile.xlsx");
 };
