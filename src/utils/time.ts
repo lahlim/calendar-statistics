@@ -5,8 +5,11 @@ export const timeConvert = (min: number) => {
 };
 
 export const fromatDateInput = (date: string) => {
-    const dateParts: any[] = date.split(".");
-    return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
+    if (date) {
+        const dateParts: any[] = date.split(".");
+        return new Date(dateParts[2], dateParts[1] - 1, +dateParts[0]);
+    }
+    return undefined;
 };
 
 export const datesAreOnSameDay = (first: Date, second: Date) =>
