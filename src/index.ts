@@ -69,9 +69,9 @@ const logSearchResults = (searchResult: any) => {
     const events = searchResult.eventArray.length;
     console.log(chalk.bold(`\nFound ${events} events with between  \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
 
-
     searchResult.eventArray.forEach((event: any) => {
-        console.log("Lassi Mustonen", event.summary, event.start, event.end, event.date);
+
+        console.log(`Lassi Mustonen${event.summary.split("-")[1]},${event.start},${event.end},${event.date}`);
     });
 };
 
