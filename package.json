@@ -12,7 +12,7 @@
     "start": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" src/index.ts",
     "once": "ts-node ./src/index.ts",
     "build": "tsc -p .",
-    "install-app": "tsc -p . && npm i -g"
+    "install-app": "tsc -p . && npm uninstall -g calendar-statistics && npm i -g"
   },
   "author": "Lassi Mustonen",
   "license": "ISC",
