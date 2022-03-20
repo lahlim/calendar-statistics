@@ -50,7 +50,7 @@ const weekPath = async (timing?: any) => {
 
 const datePath = async (date: string) => {
     var dateParts: any[] = date.split(".");
-    const dateFormatted = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
+    const dateFormatted = new Date(dateParts[2], dateParts[1] - 1, +dateParts[0]);
     const resp = await getEvents(dateFormatted);
     const summary = await formatSearchResults(resp);
     addRows(summary?.eventArray);
@@ -69,7 +69,6 @@ const logSearchResults = (searchResult: any) => {
     console.log(chalk.bold(`\nFound ${events} events with between  \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
 
     searchResult.eventArray.forEach((event: any) => {
-
         console.log(`Lassi Mustonen${event.summary.split("-")[1]},${event.start},${event.end},${event.date}`);
     });
 };

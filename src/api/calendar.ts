@@ -1,5 +1,6 @@
 const { google } = require('googleapis');
 require('dotenv').config();
+import chalk from "chalk";
 import { DateTime } from "luxon";
 
 // Provide the required configuration
@@ -48,10 +49,10 @@ export const getEvents = async (date?: Date, range?: any) => {
             timeMin: DateTime.fromISO(date.toISOString()).startOf(range).toISO(),
             timeMax: DateTime.fromISO(date.toISOString()).endOf(range).toISO(),
         });
-        // filter recurring events to prevent duplicates
-        // this might cause issues on first day of recurring events
-        // TODO editing recurring events is not supported yet
-        console.log(response['data']['items']);
+        console.log();
+        if (response['data']['items'].find((x: any) => x.recurrence !== undefined)) {
+            console.log(chalk.red("Recurring event found. App does not support recurrence so check for duplicates!"));
+        }
         let items = response['data']['items'].filter((item: any) => !item.recurrence);
         return {
             range: {
