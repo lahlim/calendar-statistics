@@ -24,6 +24,7 @@ export type CalendarEvent = {
 };
 
 export type FormattedEvent = {
+	timestamp: string;
 	workItem: string;
 	date: string;
 	summary: string;

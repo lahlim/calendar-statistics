@@ -103,9 +103,27 @@ const logResults = (searchResult: SearResultResponse) => {
 	const end = searchResult.range.end.toFormat('dd.LL.yyyy');
 	const events = searchResult.eventArray.length;
 	console.log(chalk.bold(`\nFound ${events} events with between ${start} - ${end} \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
-	searchResult.eventArray.forEach(event => {
-		console.log(event.workItem, event.summary, event.duration, event.date, `${event.comment}`);
+
+	const sorted = searchResult.eventArray.sort((a: FormattedEvent, b: FormattedEvent) => (a.timestamp > b.timestamp) ? 1 : ((b.timestamp > a.timestamp) ? -1 : 0));
+
+	const reordered = sorted.map(event => {
+		const workItem = Number(event.workItem);
+		const workItemToDisplay = Number.isNaN(workItem) ? null : workItem;
+		return ({
+			workItem: workItemToDisplay,
+			date: event.date,
+			start: event.start,
+			end: event.end,
+			summary: event.workItem ? event.summary : event.summary,
+			comment: event.workItem ? event.comment : event.comment,
+		});
 	});
+	console.table(reordered);
+
+	const noWorkItem = searchResult.eventArray.filter((event: FormattedEvent) => !event.workItem || Number.isNaN(Number(event.workItem)));
+	if (noWorkItem.length > 0) {
+		console.log(chalk.red(`\nFound ${noWorkItem.length} events without work item number\n`));
+	}
 };
 
 const formatSearchResults = async (data: any): Promise<SearResultResponse> => {
@@ -121,6 +139,7 @@ const formatSearchResults = async (data: any): Promise<SearResultResponse> => {
 			duration: timeConvert(getEventDuration(event.start.dateTime as string, event.end.dateTime as string)),
 			summary: event.summary,
 			comment: event.description,
+			timestamp: event.start.dateTime,
 			date: DateTime.fromISO(event.start.dateTime as string).toFormat('dd.LL.yyyy'),
 			start: DateTime.fromISO(event.start.dateTime as string).toFormat('HH:mm'),
 			end: DateTime.fromISO(event.end.dateTime as string).toFormat('HH:mm'),
