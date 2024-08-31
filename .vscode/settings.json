@@ -1,9 +1,5 @@
 {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-    "eslint.format.enable": true,
+    "editor.defaultFormatter": "samverschueren.linter-xo",
     "typescript.format.semicolons": "insert",
-    "[typescript]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
-    }
 }
