@@ -11,6 +11,7 @@
     "tsc": "tsc",
     "start": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" src/index.ts",
     "once": "ts-node ./src/index.ts",
+    "lint": "xo",
     "build": "tsc -p .",
     "install-app": "tsc -p . && npm uninstall -g calendar-statistics && npm i -g"
   },
@@ -19,21 +20,21 @@
   "devDependencies": {
     "@types/clear": "^0.1.2",
     "@types/figlet": "^1.5.4",
+    "@types/inquirer": "^9.0.7",
     "@types/luxon": "^2.0.0",
     "@types/minimist": "^1.2.2",
-    "@types/node": "^16.6.2",
-    "@typescript-eslint/eslint-plugin": "^4.29.2",
-    "@typescript-eslint/parser": "^4.29.2",
+    "@types/node": "^22.5.1",
     "eslint": "^7.32.0",
-    "eslint-config-airbnb-typescript": "^13.0.0",
     "nodemon": "^2.0.12",
     "ts-node": "^10.2.1",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "xo": "^0.59.3"
   },
   "dependencies": {
     "axios": "^0.21.1",
     "chalk": "^4.1.2",
     "clear": "^0.1.0",
+    "commander": "^12.1.0",
     "dotenv": "^10.0.0",
     "exceljs": "^4.3.0",
     "figlet": "^1.5.2",
@@ -43,5 +44,13 @@
     "inquirer-datepicker-prompt": "^0.4.2",
     "luxon": "^2.0.2",
     "node-ical": "^0.13.0"
+  },
+  "xo": {
+    "rules": {
+      "no-console": "off",
+      "n/file-extension-in-import": "off",
+      "import/extensions": "off",
+      "capitalized-comments": "off"
+    }
   }
 }
