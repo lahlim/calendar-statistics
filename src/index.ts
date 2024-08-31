@@ -1,123 +1,142 @@
 #!/usr/bin/env node
-import clear from "clear";
-import chalk from "chalk";
-import figlet from "figlet";
-import { getEventDuration, timeConvert, fromatDateInput } from "./utils/time";
-import { getEvents, searchEvents } from "./api/calendar";
-import { addRows } from "./services/excel";
-require('dotenv').config();
-import { Command } from 'commander';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable unicorn/no-array-for-each */
+import process from 'node:process';
+import clear from 'clear';
+import chalk from 'chalk';
+import figlet from 'figlet';
+import {Command} from 'commander';
+import {DateTime} from 'luxon';
+import dotenv from 'dotenv';
+import {getEventDuration, timeConvert, formatDateInput} from './utils/time';
+import {getEvents, searchEvents} from './api/calendar';
+import {addRows} from './services/excel';
+import {type SearResultResponse, type FormattedEvent} from './types/calendar';
+
+dotenv.config();
+
 const program = new Command();
-import { DateTime } from "luxon";
 
 const run = async () => {
-    clear();
-    console.log(chalk.red(figlet.textSync('Calendar - Stats')));
-    program.version('0.0.1')
-        .description("Search from calendar events")
-        .option('-s, --search <text>', 'Search with text from events')
-        .option('-d, --date <date>', 'Search by date. Format dd.mm.yyyy')
-        .option('-w, --week <number or date>', 'Get weeks summary. Use 0 for ongoing week. -1 for previous and 1 for next.\nSearching one day (dd.mm.yyyy) from week gives that weeks results')
-        .parse(process.argv);
-    const options = program.opts();
-    // options.date = "18.03.2022";
-    console.log(options);
-    if (options.search) {
-        searchPath(options.search);
-    }
-    if (options.date) {
-        datePath(options.date);
-    }
-    if (options.week) {
-        weekPath(options.week);
-    }
-    if (!process.argv.slice(2).length) {
-        weekPath();
-    }
+	clear();
+	console.log(chalk.red(figlet.textSync('Calendar - Stats')));
+	program.version('0.0.1')
+		.description('Search from calendar events')
+		.option('-s, --search <text>', 'Search with text from events')
+		.option('-d, --date <date>', 'Search by date. Format dd.mm.yyyy')
+		.option('-w, --week <number or date>', 'Get weeks summary. Use 0 for ongoing week. -1 for previous and 1 for next.\nSearching one day (dd.mm.yyyy) from week gives that weeks results')
+		.parse(process.argv);
+	const options = program.opts();
+	if (options.search && typeof options.search === 'string') {
+		void searchPath(options.search);
+	}
+
+	if (options.date && typeof options.date === 'string') {
+		void datePath(options.date);
+	}
+
+	if (options.week && (typeof options.week === 'string' || typeof options.week === 'number')) {
+		void weekPath(options.week);
+	}
+
+	if (process.argv.slice(2).length === 0) {
+		void weekPath();
+	}
 };
 
+const weekPath = async (timing?: string | number) => {
+	let searchDate;
+	switch (typeof timing) {
+		case 'string': {
+			searchDate = formatDateInput(timing);
+			break;
+		}
 
-const weekPath = async (timing?: any) => {
-    let searchDate = undefined;
-    if (isNaN(timing)) searchDate = fromatDateInput(timing);
-    if (!isNaN(timing)) searchDate = DateTime.now().plus({ weeks: timing }).toJSDate();
-    const resp = await getEvents(searchDate, "week");
-    const summary = await formatSearchResults(resp);
-    addRows(summary?.eventArray);
-    logResults(summary);
+		case 'number': {
+			searchDate = DateTime.now().plus({weeks: timing}).toJSDate();
+			break;
+		}
+
+		default: {
+			searchDate = DateTime.now().toJSDate();
+			break;
+		}
+	}
+
+	const resp = await getEvents(searchDate, 'week');
+	const summary = await formatSearchResults(resp);
+	addRows(summary?.eventArray ?? []);
+	logResults(summary);
 };
-
 
 const datePath = async (date: string) => {
-    var dateParts: any[] = date.split(".");
-    const dateFormatted = new Date(dateParts[2], dateParts[1] - 1, +dateParts[0]);
-    const resp = await getEvents(dateFormatted);
-    const summary = await formatSearchResults(resp);
-    addRows(summary?.eventArray);
-    logResults(summary);
+	const dateParts: any[] = date.split('.');
+	const dateFormatted = new Date(Number(dateParts[2]), Number(dateParts[1]) - 1, Number(dateParts[0]));
+	const resp = await getEvents(dateFormatted);
+	const summary = await formatSearchResults(resp);
+	addRows(summary?.eventArray ?? []);
+	logResults(summary);
 };
-
 
 const searchPath = async (query: string) => {
-    const data = await searchEvents(query);
-    const searchResult = await formatSearchResults(data);
-    logSearchResults(searchResult);
+	const data = await searchEvents(query);
+	const searchResult = await formatSearchResults(data);
+	if (!searchResult) {
+		throw new Error('No search results');
+	}
+
+	logSearchResults(searchResult);
 };
 
-const logSearchResults = (searchResult: any) => {
-    const events = searchResult.eventArray.length;
-    console.log(chalk.bold(`\nFound ${events} events with between  \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
+const logSearchResults = (searchResult: SearResultResponse) => {
+	const events = searchResult.eventArray.length;
+	console.log(chalk.bold(`\nFound ${events} events with between  \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
 
-    searchResult.eventArray.forEach((event: any) => {
-        console.log(`Lassi Mustonen${event.summary.split("-")[1]},${event.start},${event.end},${event.date}`);
-    });
+	searchResult.eventArray.forEach((event: any) => {
+		console.log(`Lassi Mustonen${event.summary.split('-')[1]},${event.start},${event.end},${event.date}`);
+	});
 };
 
-const logResults = (searchResult: any) => {
-    const start = searchResult.range.start.toFormat('dd.LL.yyyy');
-    const end = searchResult.range.end.toFormat('dd.LL.yyyy');
-    const events = searchResult.eventArray.length;
-    console.log(chalk.bold(`\nFound ${events} events with between ${start} - ${end} \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
-    searchResult.eventArray.forEach((event: {
-        summary: string;
-        comment: string;
-        duration: {
-            hours: number,
-            minutes: number;
-        }; date: Date;
-    }) => {
-        console.log(event.summary, event.duration, event.date, `"${event.comment || ""}"` || "");
-    });
+const logResults = (searchResult: SearResultResponse) => {
+	const start = searchResult.range.start.toFormat('dd.LL.yyyy');
+	const end = searchResult.range.end.toFormat('dd.LL.yyyy');
+	const events = searchResult.eventArray.length;
+	console.log(chalk.bold(`\nFound ${events} events with between ${start} - ${end} \nTotal duration ${chalk.yellow(searchResult.total.hours)} h ${chalk.yellow(searchResult.total.minutes)} min\n`));
+	searchResult.eventArray.forEach(event => {
+		console.log(event.workItem, event.summary, event.duration, event.date, `${event.comment}`);
+	});
 };
 
-const formatSearchResults = async (data: any) => {
-    if (!data) return;
-    const eventArray: any = [];
-    let total = 0;
-    data.items.forEach((event: { start: any; end: any, summary: string; description: string; }) => {
-        total = total + getEventDuration(event.start.dateTime, event.end.dateTime);
-        const item = {
-            duration: timeConvert(getEventDuration(event.start.dateTime, event.end.dateTime)),
-            summary: event.summary,
-            comment: event.description,
-            date: DateTime.fromISO(event.start.dateTime).toFormat('dd.LL.yyyy'),
-            start: DateTime.fromISO(event.start.dateTime).toFormat("HH:mm"),
-            end: DateTime.fromISO(event.end.dateTime).toFormat("HH:mm"),
-        };
-        eventArray.push(item);
-    });
-    const resp = {
-        eventArray,
-        total: timeConvert(total),
-        range: data.range
-    };
+const formatSearchResults = async (data: any): Promise<SearResultResponse> => {
+	if (!data) {
+		throw new Error('No data found');
+	}
 
-    return resp;
+	const eventArray: FormattedEvent[] = [];
+	let total = 0;
+	data.items.forEach((event: {start: any; end: any; summary: string; description: string}) => {
+		total += getEventDuration(event.start.dateTime as string, event.end.dateTime as string);
+		const item: FormattedEvent = {
+			duration: timeConvert(getEventDuration(event.start.dateTime as string, event.end.dateTime as string)),
+			summary: event.summary,
+			comment: event.description,
+			date: DateTime.fromISO(event.start.dateTime as string).toFormat('dd.LL.yyyy'),
+			start: DateTime.fromISO(event.start.dateTime as string).toFormat('HH:mm'),
+			end: DateTime.fromISO(event.end.dateTime as string).toFormat('HH:mm'),
+			person: 'Lassi Mustonen',
+			workItem: event.summary.split('-')[1],
+		};
+		eventArray.push(item);
+	});
+	const resp = {
+		eventArray,
+		total: timeConvert(total),
+		range: data.range,
+	};
+
+	return resp;
 };
 
-run();
-
-
-
-
+void run();
 
